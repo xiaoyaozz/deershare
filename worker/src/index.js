@@ -127,34 +127,38 @@ export default {
 
     try {
       if (path === '/api/connect' && request.method === 'POST') {
-        return handleConnect(request, env);
+        return await handleConnect(request, env);
       }
       if (path === '/api/prepare-send' && request.method === 'POST') {
-        return handlePrepareSend(request, env);
+        return await handlePrepareSend(request, env);
       }
       if (path === '/api/prepare-recv' && request.method === 'POST') {
-        return handlePrepareRecv(request, env);
+        return await handlePrepareRecv(request, env);
       }
       if (path === '/api/signal' && request.method === 'POST') {
-        return handleSignal(request, env);
+        return await handleSignal(request, env);
       }
       if (path === '/api/poll' && request.method === 'GET') {
-        return handlePoll(request, env);
+        return await handlePoll(request, env);
       }
       if (path === '/api/delete-code' && request.method === 'POST') {
-        return handleDeleteRecvCode(request, env);
+        return await handleDeleteRecvCode(request, env);
       }
       if (path === '/api/file/code' && request.method === 'POST') {
-        return handleFileCode(request, env);
+        return await handleFileCode(request, env);
       }
       if (path === '/api/feedback' && request.method === 'POST') {
-        return handleFeedback(request, env);
+        return await handleFeedback(request, env);
       }
       if (path === '/api/prepare-download' && request.method === 'POST') {
-        return handlePrepareDownload(request, env);
+        return await handlePrepareDownload(request, env);
       }
     } catch (err) {
       return jsonResponse({ ok: false, error: err.message }, 500);
+    }
+
+    if (path === '/') {
+      return jsonResponse({ status: 'ok', service: 'deershare-signaling', version: '1.0.0' });
     }
 
     return new Response('Not Found', { status: 404 });

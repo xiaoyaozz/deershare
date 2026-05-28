@@ -5,4 +5,4 @@ compatibility_date = "2025-04-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "deershare-db"
-database_id = ""
+database_id = "6c007b5a-ba13-4976-b476-e668b22e331b"
