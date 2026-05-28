@@ -2,16 +2,11 @@ let ws = null;
 const messageHandlers = new Map();
 
 function getWsUri() {
-  const loc = window.location;
-  let wsUri = '';
-  if (loc.protocol === 'https:') {
-    wsUri += 'wss://';
-  } else {
-    wsUri += 'ws://';
+  if (window.DEERSHARE_CONFIG && window.DEERSHARE_CONFIG.wsUrl) {
+    return window.DEERSHARE_CONFIG.wsUrl;
   }
-  wsUri += loc.host;
-  wsUri += '/ws';
-  return wsUri;
+  const loc = window.location;
+  return (loc.protocol === 'https:' ? 'wss://' : 'ws://') + loc.host + '/ws';
 }
 
 function registerMessageHandler(type, handler) {
@@ -33,18 +28,12 @@ function removeMessageHandler(type, handler) {
 function handleMessage(event) {
   if (typeof event.data === 'string') {
     const msg = JSON.parse(event.data);
-    const {
-      type,
-      payload,
-    } = msg;
+    const { type, payload } = msg;
     const handlers = messageHandlers.get(type);
-    if (!handlers) {
-      return;
-    }
-    for (var i = 0; i < handlers.length; i++) {
-      const handler = handlers[i];
+    if (!handlers) return;
+    for (let i = 0; i < handlers.length; i++) {
       try {
-        handler(payload);
+        handlers[i](payload);
       } catch (err) {
         console.error('websocket message handler error: ', err);
       }
@@ -57,13 +46,9 @@ function handleMessage(event) {
 function connect() {
   return new Promise((resolve, reject) => {
     const uri = getWsUri();
-    if (ws && ws.readyState === 1) {
-      return resolve();
-    }
+    if (ws && ws.readyState === 1) return resolve();
     ws = new window.WebSocket(uri);
-    ws.onopen = () => {
-      resolve();
-    };
+    ws.onopen = () => resolve();
     ws.onerror = (err) => {
       console.log('connect web socket error: ', err);
       reject(err);

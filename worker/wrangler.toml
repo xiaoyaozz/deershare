@@ -1,0 +1,16 @@
+name = "deershare-signaling"
+main = "src/index.js"
+compatibility_date = "2025-04-01"
+
+[[durable_objects.bindings]]
+name = "SIGNALING_DO"
+class_name = "SignalingDO"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["SignalingDO"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "deershare-db"
+database_id = ""

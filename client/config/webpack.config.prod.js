@@ -1,3 +1,4 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const {
@@ -36,6 +37,10 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin(),
+    new HtmlWebpackPlugin({
+      title: '小鹿快传｜简单安全高效的P2P文件传输服务',
+      template: paths.appHtml,
+    }),
   ],
   devServer: {
     contentBase: './build',

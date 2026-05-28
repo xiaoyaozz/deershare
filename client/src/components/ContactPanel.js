@@ -51,7 +51,8 @@ class ContactPanel extends Component {
       return;
     }
 
-    axios.post('/api/feedback', {
+    const apiBase = (window.DEERSHARE_CONFIG && window.DEERSHARE_CONFIG.apiBase) || '';
+    axios.post(apiBase + '/api/feedback', {
       contact,
       content,
     })
