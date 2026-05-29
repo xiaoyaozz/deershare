@@ -94,14 +94,8 @@ export default class Peer extends EventEmitter {
   createRTCConnection(isCaller) {
     const config = {
       iceServers: [
-        {
-          urls: 'stun:deershare.com',
-        },
-        {
-          urls: 'turn:0.peerjs.com:3478',
-          username: 'peerjs',
-          credential: 'peerjsp',
-        },
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
       ],
     };
     const pc = new RTCPeerConnection(config);
