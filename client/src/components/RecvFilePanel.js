@@ -33,6 +33,7 @@ class RecvFilePanel extends Component {
     this.recvBuffer = [];
     this.recvSizes = {};
     this.bps = 0;
+    this.lastReportedRecvBytes = {};
 
     this.timer = setInterval(() => {
       const files = this.props.files.map(f => {
@@ -141,13 +142,14 @@ class RecvFilePanel extends Component {
       const newRecvBytes = curRecvBytes + data.byteLength;
       this.recvSizes[curFileId] = newRecvBytes;
       this.bps += data.byteLength;
-      this.peer.sendJSON({
-        type: 'chunkReceived',
-        payload: {
-          fileId: curFileId,
-          recvBytes: newRecvBytes,
-        },
-      });
+      const lastReported = this.lastReportedRecvBytes[curFileId] || 0;
+      if (newRecvBytes - lastReported >= 1048576) {
+        this.lastReportedRecvBytes[curFileId] = newRecvBytes;
+        this.peer.sendJSON({
+          type: 'chunkReceived',
+          payload: { fileId: curFileId, recvBytes: newRecvBytes },
+        });
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-const CHUNK_SIZE = 64 * 1024;
+const CHUNK_SIZE = 256 * 1024;
 
 class FileChunker {
   constructor(file) {
@@ -10,9 +10,8 @@ class FileChunker {
   getNextChunk() {
     return new Promise((resolve, reject) => {
       if (this.offset >= this.file.size) {
-        resolve({
-          done: true,
-        });
+        resolve({ done: true });
+        return;
       }
 
       this.reader.onload = (e) => {
@@ -24,12 +23,8 @@ class FileChunker {
           offset: this.offset,
         });
       };
-      this.reader.onabort = () => {
-        reject(new Error('FileReader abort'));
-      };
-      this.reader.onerror = (evt) => {
-        reject(new Error('FileReader onerror' + evt));
-      };
+      this.reader.onabort = () => reject(new Error('FileReader abort'));
+      this.reader.onerror = (evt) => reject(new Error('FileReader onerror' + evt));
       const blob = this.file.slice(this.offset, this.offset + CHUNK_SIZE);
       this.reader.readAsArrayBuffer(blob);
     });
