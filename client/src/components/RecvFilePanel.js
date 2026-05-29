@@ -2,10 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import prettyBytes from 'pretty-bytes';
 import { withRouter } from 'react-router-dom';
-import Icon from './common/Icon';
-import Button from './common/Button';
-import Input from './common/Input';
-import FileBox from './FileBox';
 import Toast from './common/Toast';
 import {
   prepareRecv,
@@ -24,7 +20,8 @@ class RecvFilePanel extends Component {
     this.onChangeRecvCode = this.onChangeRecvCode.bind(this);
     this.onPrepareRecv = this.onPrepareRecv.bind(this);
     this.onStartRecv = this.onStartRecv.bind(this);
-    this.onReset = this.onReset.bind(this); // 回到初始状态，比如点击取消或者接收完成继续接收等
+    this.onReset = this.onReset.bind(this);
+    this.goHome = this.goHome.bind(this);
 
     this.onRecvPeerData = this.onRecvPeerData.bind(this);
     this.handlePeerMsg = this.handlePeerMsg.bind(this);
@@ -52,7 +49,7 @@ class RecvFilePanel extends Component {
   }
 
   componentDidMount() {
-    document.title = '小鹿快传｜简单安全高效的P2P文件传输服务 - 接收文件';
+    document.title = '极速传输 - 接收文件';
     const recvCode = this.props.match.params.recvCode;
     if (recvCode) {
       prepareRecv(recvCode);
@@ -61,6 +58,20 @@ class RecvFilePanel extends Component {
 
   componentWillUnMount() {
     clearInterval(this.timer);
+  }
+
+  goHome() {
+    this.peer.destroy();
+    this.props.setState({
+      recvCode: '',
+      peerState: '',
+      started: false,
+      files: [],
+      targetId: '',
+    });
+    window.history.pushState({}, '', '/');
+    const popEvent = new Event('popstate');
+    window.dispatchEvent(popEvent);
   }
 
   onChangeRecvCode(value) {
@@ -119,7 +130,6 @@ class RecvFilePanel extends Component {
       this.props.setState({
         peerState: 'transfer',
       });
-      // 收件码只能使用一次，一旦开始接收就使其失效
       deleteRecvCode(this.props.recvCode || this.props.match.params.recvCode);
     });
 
@@ -187,12 +197,23 @@ class RecvFilePanel extends Component {
 
     return (
       <>
-        <Input placeholder="请输入6位收件码" inputClassName={styles.input} value={recvCode} onChange={this.onChangeRecvCode} />
-        <Button type="primary" className={styles.recvBtn} onClick={this.onPrepareRecv}>接收文件</Button>
-        <div className={styles.tip}>
-          <Icon name="info" />
-          如何获取收件码？
+        <div className={styles.receiveArea}>
+          <input
+            className={styles.codeInput}
+            placeholder="输入6位验证码"
+            maxLength={6}
+            value={recvCode}
+            onChange={e => this.onChangeRecvCode(e.target.value)}
+          />
+          <button
+            className={styles.btnRecv}
+            onClick={this.onPrepareRecv}
+            disabled={!recvCode || recvCode.length !== 6}
+          >
+            接收文件
+          </button>
         </div>
+        <button className={styles.btnBack} onClick={this.goHome} title="返回首页">←</button>
       </>
     );
   }
@@ -203,6 +224,7 @@ class RecvFilePanel extends Component {
       started,
       curFileId,
       files,
+      bps,
     } = this.props;
 
     const totalBytes = files.reduce((sum, cur) => {
@@ -216,38 +238,82 @@ class RecvFilePanel extends Component {
       }
     });
 
-    let btnContent = '开始下载';
+    let statusMsg;
+    let statusClass = styles.status;
     if (allCompleted) {
-      btnContent = '继续接收';
+      statusMsg = '✅ 文件接收完成！';
+      statusClass = `${styles.status} ${styles.success}`;
     } else if (!started) {
-      btnContent = '开始下载';
-    } else if (peerState === 'disconnected' || peerState === 'connectFailed') {
-      btnContent = '重新下载';
+      statusMsg = '点击下方按钮开始下载';
     } else if (peerState === 'connecting') {
-      btnContent = '正在连接...';
+      statusMsg = '正在连接…';
     } else if (peerState === 'connected') {
-      btnContent = '连接成功';
+      statusMsg = '连接成功，正在接收…';
     } else if (peerState === 'transfer') {
-      btnContent = `正在下载...(${prettyBytes(this.bps)}/s)`;
+      statusMsg = '正在下载...';
+    } else if (peerState === 'disconnected' || peerState === 'connectFailed') {
+      statusMsg = '连接失败';
+      statusClass = `${styles.status} ${styles.error}`;
     }
+
+    const totalPct = files.length > 0
+      ? Math.round(files.reduce((s, f) => s + parseFloat(f.pct || 0), 0) / files.length)
+      : 0;
 
     return (
       <>
-        <div className={styles.msg1}>
-          对方发送给您以下文件：
-        </div>
-        <FileBox files={this.props.files} curFileId={curFileId} />
-        <div className={styles.msg2}>
-          <div>{files.length} 个文件，共 {prettyBytes(totalBytes)}</div>
-        </div>
-        <Button
-          type="primary"
-          className={styles.recvBtn}
-          loading={started && !allCompleted && (peerState === 'connected' || peerState === 'connecting' || peerState === 'transfer')}
-          onClick={allCompleted ? this.onReset : this.onStartRecv}
-        >
-          {btnContent}
-        </Button>
+        <div className={statusClass}>{statusMsg}</div>
+
+        {files.map(f => {
+          const pct = parseFloat(f.pct || 0);
+          let rightContent;
+          if (f.downloadUrl) {
+            rightContent = <span className={styles.fileRowDone}>下载</span>;
+          } else if (pct >= 100) {
+            rightContent = <span className={styles.fileRowDone}>完成</span>;
+          } else {
+            rightContent = <span className={styles.fileRowPct}>{pct}%</span>;
+          }
+          return (
+            <div key={f.uid} className={styles.fileRow}>
+              <span className={styles.fileRowName}>📄 {f.name}</span>
+              {rightContent}
+            </div>
+          );
+        })}
+
+        {started && !allCompleted && (
+          <div className={styles.progressContainer}>
+            <div className={styles.progressBarBg}>
+              <div className={styles.progressBarFill} style={{ width: totalPct + '%' }}></div>
+            </div>
+            <div className={styles.progressText}>{totalPct}%</div>
+            <div className={styles.speedText}>{prettyBytes(bps || 0)}/s</div>
+          </div>
+        )}
+
+        {!allCompleted && (
+          <button
+            className={styles.btnDownload}
+            onClick={this.onStartRecv}
+            disabled={started && peerState !== 'disconnected' && peerState !== 'connectFailed'}
+          >
+            {!started && '开始下载'}
+            {started && (peerState === 'connecting') && '正在连接…'}
+            {started && (peerState === 'transfer' || peerState === 'connected') && '下载中…'}
+            {started && (peerState === 'disconnected' || peerState === 'connectFailed') && '重新下载'}
+          </button>
+        )}
+
+        {allCompleted && (
+          <button className={styles.btnDownload} onClick={this.onReset}>
+            继续接收
+          </button>
+        )}
+
+        <button className={styles.btnBack} onClick={allCompleted ? this.onReset : this.goHome} title={allCompleted ? '继续接收' : '返回首页'}>
+          {allCompleted ? '↩' : '←'}
+        </button>
       </>
     );
   }
@@ -258,17 +324,7 @@ class RecvFilePanel extends Component {
     } = this.props;
 
     return (
-      <div className={styles.base}>
-        <div className={styles.titleRow}>
-          {files.length > 0 && (
-            <div className={styles.cancel} onClick={this.onReset}>
-              取消
-            </div>
-          )}
-          <div className={styles.title}>
-            接收文件
-          </div>
-        </div>
+      <div className={styles.container}>
         {files.length === 0 && this.renderStep1()}
         {files.length > 0 && this.renderStep2()}
       </div>
@@ -283,6 +339,7 @@ RecvFilePanel.propTypes = {
   files: PropTypes.array,
   targetId: PropTypes.string,
   curFileId: PropTypes.string,
+  bps: PropTypes.number,
   match: PropTypes.object,
   setState: PropTypes.func,
 };

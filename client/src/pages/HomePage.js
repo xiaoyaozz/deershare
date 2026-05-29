@@ -1,15 +1,14 @@
 import React from 'react';
 import {
   Switch,
-  Redirect,
   Route,
+  Link,
 } from 'react-router-dom';
 import ws from '../ws';
-import NavBar from '../components/NavBar';
 import SendFilePanel from '../components/SendFilePanel';
 import RecvFilePanel from '../components/RecvFilePanel';
-import Icon from '../components/common/Icon';
-import SloganCard from '../components/SloganCard';
+import Footer from '../components/Footer';
+import CoffeeModal from '../components/CoffeeModal';
 
 import styles from './HomePage.cm.styl';
 
@@ -18,24 +17,27 @@ class HomePage extends React.Component {
     super();
     this.state = {
       send: {
-        curStep: 1, // 当前在第几步
-        files: [], // 已选择的文件
-        peerState: '', // WebRTC连接状态
-        waitingPrepareSend: false, // 是否正在等待选择完成的消息
+        curStep: 1,
+        files: [],
+        peerState: '',
+        waitingPrepareSend: false,
       },
       recv: {
-        recvCode: '', // 用户输入的收件码
-        peerState: '', // WebRTC连接状态
-        started: false, // 是否点击了开始下载
-        files: [], // 接收到的文件
-        targetId: '', // 对方的peerId
+        recvCode: '',
+        peerState: '',
+        started: false,
+        files: [],
+        targetId: '',
       },
+      coffeeOpen: false,
     };
 
     this.setSendState = this.setSendState.bind(this);
     this.setRecvState = this.setRecvState.bind(this);
     this.onS2cPrepareSend = this.onS2cPrepareSend.bind(this);
     this.onS2cPrepareRecv = this.onS2cPrepareRecv.bind(this);
+    this.openCoffee = this.openCoffee.bind(this);
+    this.closeCoffee = this.closeCoffee.bind(this);
   }
 
   onS2cPrepareSend(payload) {
@@ -88,15 +90,46 @@ class HomePage extends React.Component {
     });
   }
 
+  openCoffee() {
+    this.setState({ coffeeOpen: true });
+  }
+
+  closeCoffee() {
+    this.setState({ coffeeOpen: false });
+  }
+
+  renderLanding() {
+    return (
+      <div className={styles.landing}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>⚡ 极速传输</h1>
+          <p className={styles.subtitle}>端到端加密 · 点对点直连</p>
+        </div>
+        <div className={styles.heroText}>
+          <p className={styles.tagline}>安全 • 快速 • 简单</p>
+          <h2 className={styles.heroSubtitle}>设备间直接共享文件</h2>
+          <p className={styles.heroDesc}>无需登录，无需安装，浏览器即可完成端到端加密传输</p>
+        </div>
+        <div className={styles.btnGroup}>
+          <Link to="/send" className={`${styles.btn} ${styles.btnSend}`}>
+            <span className={styles.btnIcon}>📤</span> 发送文件
+          </Link>
+          <Link to="/recv" className={`${styles.btn} ${styles.btnReceive}`}>
+            <span className={styles.btnIcon}>📥</span> 接收文件
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   render() {
     return (
       <div className={styles.container}>
-        <NavBar />
-        <Route exact path="/">
-          <Redirect to="/send" />
-        </Route>
-        <div className={styles.content}>
+        <div className={styles.main}>
           <Switch>
+            <Route exact path="/">
+              {this.renderLanding()}
+            </Route>
             <Route path="/send">
               <SendFilePanel {...this.state.send} setState={this.setSendState} />
             </Route>
@@ -104,49 +137,12 @@ class HomePage extends React.Component {
               <RecvFilePanel {...this.state.recv} setState={this.setRecvState} />
             </Route>
           </Switch>
-          <div className={styles.cardsArea}>
-            <div className={styles.cardRow}>
-              <div className={styles.cardWrapper}>
-                <SloganCard
-                  title="简单"
-                  icon={<Icon name="simple" className={styles.iconSimple}/>}
-                  desc="无需登录只需要选择好想要发送的文件，然后将生成的下载链接发送给对方即可开始传送。"
-                />
-              </div>
-              <div className={styles.cardWrapper}>
-                <SloganCard
-                  title="安全"
-                  icon={<Icon name="secure" className={styles.iconSecure}/>}
-                  desc="小鹿快传使用P2P技术，文件数据不走服务器，直接发送给对方，且数据自带加密，免去隐私被泄漏的风险。"
-                />
-              </div>
-            </div>
-            <div className={styles.cardRow}>
-              <div className={styles.cardWrapper}>
-                <SloganCard
-                  title="高效"
-                  icon={<Icon name="speed" className={styles.iconSpeed}/>}
-                  desc="由于使用P2P技术，文件传输速度不会受到服务器性能的影响，完全取决于你和对方的网速。"
-                />
-              </div>
-              <div className={styles.cardWrapper}>
-                <SloganCard
-                  title="专业"
-                  icon={<Icon name="check-fill" className={styles.iconCheck}/>}
-                  desc="不限制文件类型，任何文件都可随心传输。所有文件都是原文件传输，传视频图片不损失画质。"
-                />
-              </div>
-            </div>
-          </div>
         </div>
+        <Footer onCoffeeClick={this.openCoffee} />
+        <CoffeeModal open={this.state.coffeeOpen} onClose={this.closeCoffee} />
       </div>
     );
   }
 }
-
-HomePage.defaultProps = {};
-
-HomePage.propTypes = {
-};
 
 export default HomePage;

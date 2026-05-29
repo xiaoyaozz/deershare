@@ -1,20 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import prettyBytes from 'pretty-bytes';
-import classnames from 'classnames';
 import uuidv4 from 'uuid/v4';
-import {
-  Link,
-} from 'react-router-dom';
-import QRCode from 'qrcode.react';
 import Dropzone from 'react-dropzone';
 
-import Icon from './common/Icon';
-import Button from './common/Button';
-import Steps from './common/Steps';
 import Toast from './common/Toast';
-import FileBox from './FileBox';
 import Peer from '../Peer';
 import FileChunker from '../FileChunker';
 import { calcPercent } from '../common/util';
@@ -22,23 +12,21 @@ import { prepareSend, deleteRecvCode } from '../actions/file';
 
 import styles from './SendFilePanel.cm.styl';
 
-const Step = Steps.Step;
-
 class SendFilePanel extends Component {
   constructor(props) {
     super(props);
     this.peer = new Peer();
-    this.inputRef = React.createRef();
     this.onChangeFile = this.onChangeFile.bind(this);
     this.onRemoveFile = this.onRemoveFile.bind(this);
     this.onClickSelectDone = this.onClickSelectDone.bind(this);
     this.onClickBack = this.onClickBack.bind(this);
-    this.onReset = this.onReset.bind(this); // 回到初始状态，用在点击取消或发送完成继续发送等地方
+    this.onReset = this.onReset.bind(this);
     this.onRecvPeerData = this.onRecvPeerData.bind(this);
     this.handlePeerMsg = this.handlePeerMsg.bind(this);
+    this.goHome = this.goHome.bind(this);
 
     this.sendSizes = {};
-    this.lastPeerRecvBytes = 0; // (上次)接收方接收到的字节数，用于计算bps
+    this.lastPeerRecvBytes = 0;
     this.bps = 0;
 
     this.timer = setInterval(() => {
@@ -57,11 +45,24 @@ class SendFilePanel extends Component {
   }
 
   componentDidMount() {
-    document.title = '小鹿快传｜简单安全高效的P2P文件传输服务 - 发送文件';
+    document.title = '极速传输 - 发送文件';
   }
 
   componentWillUnmount() {
     clearInterval(this.timer);
+  }
+
+  goHome() {
+    this.peer.destroy();
+    this.props.setState({
+      curStep: 1,
+      files: [],
+      peerState: '',
+      waitingPrepareSend: false,
+    });
+    window.history.pushState({}, '', '/');
+    const popEvent = new Event('popstate');
+    window.dispatchEvent(popEvent);
   }
 
   onClickSelectDone() {
@@ -241,58 +242,47 @@ class SendFilePanel extends Component {
     }, 0);
 
     return (
-      <Dropzone onDrop={this.onChangeFile} noClick>
-        {({ getRootProps, getInputProps, isDragActive, open }) => (
-          <>
-            <div className={classnames(styles.uploadArea, isDragActive && styles.dragActive)} {...getRootProps()}>
-              {files.length === 0 && (
+      <>
+        <Dropzone onDrop={this.onChangeFile} noClick>
+          {({ getRootProps, getInputProps, isDragActive, open }) => (
+            <>
+              <div
+                className={`${styles.dropZone} ${isDragActive ? styles.dragActive : ''}`}
+                {...getRootProps()}
+              >
+                <div className={styles.dropIcon}>📁</div>
+                <p className={styles.dropText}>点击选择文件</p>
+                <p className={styles.dropHint}>支持多个文件</p>
+                <input {...getInputProps()} />
+              </div>
+              {files.length > 0 && (
                 <>
-                  <div className={styles.iconPlusWrapper}>
-                    <Icon name="plus" className={styles.iconPlus} />
+                  {files.map(f => (
+                    <div key={f.uid} className={styles.fileInfo}>
+                      <div>
+                        <div className={styles.fileName}>📄 {f.name}</div>
+                        <div className={styles.fileSize}>{prettyBytes(f.size)}</div>
+                      </div>
+                      <span className={styles.fileRemove} onClick={this.onRemoveFile(f.uid)}>✕</span>
+                    </div>
+                  ))}
+                  <div className={styles.fileSummary}>
+                    {files.length} 个文件，共 {prettyBytes(totalBytes)}
                   </div>
-                  <div className={styles.uploadTip}>
-                    将文件拖动到方框内或点击下方按钮
-                  </div>
-                  <Button
-                    type="primary"
-                    className={styles.uploadBtn}
-                    onClick={() => open()}
+                  <button
+                    className={styles.btnSelectDone}
+                    onClick={this.onClickSelectDone}
+                    disabled={waitingPrepareSend}
                   >
-                    上传文件
-                  </Button>
+                    {waitingPrepareSend ? '处理中...' : '选好了'}
+                  </button>
                 </>
               )}
-              {files.length > 0 && (
-                <FileBox
-                  files={files}
-                  removable
-                  onRemoveFile={this.onRemoveFile}
-                />
-              )}
-              <input {...getInputProps()} />
-            </div>
-            {files.length === 0 && (
-              <div className={styles.recvGuide}>
-                已有收件码？点击
-                <Link to="/recv" className={styles.link}> 接收文件</Link>
-              </div>
-            )}
-            {files.length > 0 && (
-              <>
-                <div className={styles.uploadMore}>
-                  <div className={styles.addMore}>
-                    <span onClick={() => open()}>添加文件</span>
-                  </div>
-                  <div className={styles.fileSummary}>{files.length} 个文件，共 {prettyBytes(totalBytes)}</div>
-                </div>
-                <Button type="primary" loading={waitingPrepareSend} className={styles.btnSelectFileDone} onClick={this.onClickSelectDone}>
-                  选好了
-                </Button>
-              </>
-            )}
-          </>
-        )}
-      </Dropzone>
+            </>
+          )}
+        </Dropzone>
+        <button className={styles.btnBack} onClick={this.goHome} title="返回首页">←</button>
+      </>
     );
   }
 
@@ -301,54 +291,14 @@ class SendFilePanel extends Component {
       recvCode,
     } = this.props;
 
-    const recvLink = `http://${document.location.host}/recv/${recvCode}`;
-
     return (
       <>
-        <div className={styles.selectSendMethod}>
-          请选择发送方式：
+        <div className={styles.codeDisplay}>
+          <div className={styles.codeNumber}>{recvCode}</div>
+          <div className={styles.codeHint}>📋 将上方验证码发送给接收方</div>
+          <div className={styles.waitingHint}>等待接收方连接中…</div>
         </div>
-        <div className={styles.sendMethod1}>
-          1. 通过链接发送（对方打开链接即可下载文件）
-        </div>
-        <div className={styles.recvLinkContainer}>
-          <span className={styles.recvLink}>
-            {recvLink}
-          </span>
-          <CopyToClipboard text={recvLink} onCopy={() => Toast.success('复制成功')}>
-            <span className={styles.btnCopy}>
-              复制
-            </span>
-          </CopyToClipboard>
-        </div>
-        <div>
-          2. 通过6位数取件码（对方在小鹿快传网站输入即可下载文件）
-        </div>
-        <div className={styles.recvCodeContainer}>
-          <span className={styles.recvCode}>
-            {recvCode}
-          </span>
-          <CopyToClipboard text={recvCode} onCopy={() => Toast.success('复制成功')}>
-            <span className={styles.btnCopy}>
-              复制
-            </span>
-          </CopyToClipboard>
-        </div>
-        <div>
-          3. 扫描下方二维码：
-        </div>
-        <div className={styles.qrcodeContainer}>
-          <QRCode value={recvLink} />
-        </div>
-
-        <div className={styles.connectTips}>
-          温馨提示：<br />
-          以上取件码在10分钟内有效，请尽快发送给对方 <br />
-          对方输入取件码并确认之后会自动开始发送
-        </div>
-        <Button type="primary" className={styles.btnWaitConnect} loading>
-          等待连接...
-        </Button>
+        <button className={styles.btnBack} onClick={this.onClickBack} title="返回">←</button>
       </>
     );
   }
@@ -358,6 +308,7 @@ class SendFilePanel extends Component {
       curFileId,
       files,
       peerState,
+      bps,
     } = this.props;
 
     const totalBytes = files.reduce((sum, cur) => {
@@ -371,35 +322,52 @@ class SendFilePanel extends Component {
       }
     });
 
-    let btnContent;
+    let statusMsg;
+    let statusClass = styles.status;
     if (allCompleted) {
-      btnContent = '继续发送';
+      statusMsg = '✅ 文件发送完成！';
+      statusClass = `${styles.status} ${styles.success}`;
     } else if (peerState === 'connecting') {
-      btnContent = '正在连接...';
+      statusMsg = '正在连接…';
     } else if (peerState === 'connected') {
-      btnContent = '连接成功';
+      statusMsg = '连接成功，正在传输…';
     } else if (peerState === 'transfer') {
-      btnContent = `正在发送...(${prettyBytes(this.bps || 0)}/s)`;
+      statusMsg = `正在发送...`;
     } else if (peerState === 'disconnected' || peerState === 'connectFailed') {
-      btnContent = '连接断开，等待重连...';
+      statusMsg = '连接断开';
+      statusClass = `${styles.status} ${styles.error}`;
     }
 
-    let loading = true;
-    if (allCompleted) {
-      loading = false;
-    }
+    const totalPct = files.length > 0
+      ? Math.round(files.reduce((s, f) => s + parseFloat(f.pct || 0), 0) / files.length)
+      : 0;
 
     return (
       <>
-        <div className={styles.sendingBox}>
-          <FileBox files={files} curFileId={curFileId} />
-        </div>
-        <div className={styles.sendingSummary}>
-          <div>{files.length}个文件，共{prettyBytes(totalBytes)}</div>
-        </div>
-        <Button type="primary" className={styles.btnSending} loading={loading} onClick={this.onReset}>
-          {btnContent}
-        </Button>
+        <div className={statusClass}>{statusMsg}</div>
+        {!allCompleted && (
+          <div className={styles.progressContainer}>
+            <div className={styles.progressBarBg}>
+              <div className={styles.progressBarFill} style={{ width: totalPct + '%' }}></div>
+            </div>
+            <div className={styles.progressText}>{totalPct}%</div>
+            <div className={styles.speedText}>{prettyBytes(bps || 0)}/s</div>
+          </div>
+        )}
+        {files.map(f => {
+          const pct = parseFloat(f.pct || 0);
+          return (
+            <div key={f.uid} className={styles.fileProgress}>
+              <span className={styles.fileProgressName}>📄 {f.name}</span>
+              <span className={pct >= 100 ? styles.fileProgressDone : styles.fileProgressPct}>
+                {pct >= 100 ? '✅' : pct + '%'}
+              </span>
+            </div>
+          );
+        })}
+        <button className={styles.btnBack} onClick={allCompleted ? this.onReset : this.onReset} title={allCompleted ? '继续发送' : '取消'}>
+          {allCompleted ? '↩' : '←'}
+        </button>
       </>
     );
   }
@@ -407,35 +375,10 @@ class SendFilePanel extends Component {
   render() {
     const {
       curStep,
-      files,
     } = this.props;
 
     return (
-      <div className={styles.base}>
-        <div className={styles.titleRow}>
-          {((curStep === 1 && files.length > 0) || (curStep === 3)) && (
-            <div className={styles.back} onClick={this.onReset}>
-              取消
-            </div>
-          )}
-          {curStep === 2 && (
-            <div className={styles.back} onClick={this.onClickBack}>
-              返回
-            </div>
-          )}
-          <div className={styles.title}>
-            发送文件
-          </div>
-        </div>
-        <Steps>
-          <Step
-            index={1}
-            title="选择文件"
-            active={curStep === 1}
-          />
-          <Step index={2} title="收件码" active={curStep === 2} />
-          <Step index={3} title="发送" active={curStep === 3} />
-        </Steps>
+      <div className={styles.container}>
         {curStep === 1 && this.renderStep1()}
         {curStep === 2 && this.renderStep2()}
         {curStep === 3 && this.renderStep3()}
@@ -451,6 +394,7 @@ SendFilePanel.propTypes = {
   curFileId: PropTypes.string,
   peerState: PropTypes.string,
   recvCode: PropTypes.string,
+  bps: PropTypes.number,
   setState: PropTypes.func,
 };
 

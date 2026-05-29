@@ -1,152 +1,203 @@
-.base
-  width 380px
+.container
+  width 100%
+  max-width 500px
   margin 0 auto
-  padding 20px 25px 10px
-  background white
-  box-shadow 0px 2px 4px 0px rgba(197, 197, 197, 0.5)
+  padding 0 24px
 
-.title-row
-  position relative
-
-.title
-  text-align center
-  font-weight 700
-  color #757575
-
-.back
-  position absolute
+.dropZone
+  border 2px dashed #d1d5db
+  border-radius 16px
+  padding 48px 20px
   cursor pointer
-  color #8e8e8e
-
-.upload-area
-  border 2px dashed #D1D1D1
+  transition all 0.2s
   text-align center
-  margin 8px auto
+  background #fafafa
   outline none
-  &.drag-active
-    border 2px solid #63e9ec
-    border-radius 4px
+  &.dragActive
+    border-color #2563eb
+    background #eff6ff
 
-.recv-guide
-  margin-top 20px
+.dropIcon
+  font-size 40px
+  margin-bottom 8px
 
-.icon-plus-wrapper
-  margin-top 60px
+.dropText
+  color #6b7280
+  font-size 14px
 
-.icon-plus
-  font-size 42px
-  color #8e8e8e
+.dropHint
+  font-size 11px
+  color #9ca3af
+  margin-top 4px
 
-.upload-tip
-  color #8e8e8e
-  margin-top 8px
+.fileInfo
+  background #f0fdf4
+  border 1px solid #bbf7d0
+  border-radius 12px
+  padding 14px
+  margin 12px 0
   font-size 13px
-
-.upload-btn
-  width 215px
-  margin-top 15px
-  margin-bottom 100px
-
-.link
-  color #40AF9C
-  &:hover
-    color lighten(#40AF9C, 30%)
-
-.upload-more
+  word-break break-all
   display flex
   justify-content space-between
   align-items center
 
-.add-more
+.fileName
+  font-weight 600
+  color #166534
+
+.fileSize
+  color #15803d
+  font-size 12px
+  margin-top 2px
+
+.fileRemove
   cursor pointer
-  color #40af9c
+  color #dc2626
+  font-size 18px
+  padding 4px
+  line-height 1
 
-.file-summary
-  text-align right
-  color #adadad
+.fileSummary
+  text-align center
+  color #6b7280
+  font-size 13px
+  margin 8px 0
 
-.btn-select-file-done
+.btnSelectDone
+  display block
   width 100%
-  margin-top 20px
+  padding 16px
+  font-size 16px
+  font-weight 600
+  border none
+  border-radius 14px
+  cursor pointer
+  background #2563eb
+  color white
+  transition background 0.2s
+  margin-top 12px
+  &:hover
+    background #1d4ed8
+  &:disabled
+    background #93c5fd
+    cursor not-allowed
 
+.codeDisplay
+  text-align center
+  margin 20px 0
 
-/* STEP 2 */
-
-.select-send-method
-  color #8e8e8e
-  margin-bottom 10px
-
-.recv-link-container
-  margin 10px 0px 20px
-
-.recv-code-container
-  margin 10px 0px 20px
-
-.recv-link
+.codeNumber
+  font-size 42px
+  font-weight 800
+  letter-spacing 6px
+  color #2563eb
+  background #eff6ff
+  border-radius 14px
+  padding 14px 20px
   display inline-block
-  height 36px
-  line-height @height
-  vertical-align middle
-  border 1px solid #c8c8c8
-  background #eeeeee
-  padding 0px 10px
-  margin-right 10px
 
-.recv-code
-  display inline-block
-  height 36px
-  line-height @height
-  vertical-align middle
-  border 1px solid #c8c8c8
-  background #eeeeee
-  padding 0px 10px
-  margin-right 10px
-  width 238px
+@media (min-width: 768px)
+  .codeNumber
+    font-size 52px
+
+.codeHint
+  color #6b7280
+  font-size 13px
+  margin-top 8px
+
+.waitingHint
+  font-size 11px
+  color #f97316
+  margin-top 4px
+
+.status
+  margin 10px 0
+  font-size 13px
+  color #6b7280
+  text-align center
+  &.error
+    color #dc2626
+  &.success
+    color #16a34a
+    font-weight 600
+    font-size 15px
+
+.progressContainer
+  margin 16px 0
+
+.progressBarBg
+  width 100%
+  height 6px
+  background #e5e7eb
+  border-radius 3px
+  overflow hidden
+
+.progressBarFill
+  height 100%
+  width 0%
+  background #2563eb
+  border-radius 3px
+  transition width 0.3s ease
+
+.progressText
+  margin-top 6px
+  font-size 12px
+  color #2563eb
+  font-weight 500
   text-align center
 
-.btn-copy
-  color #649AE4
-  cursor pointer
-  user-select none
-
-.qrcode-container
-  margin-top 10px
+.speedText
+  font-size 11px
+  color #6b7280
   text-align center
+  margin-top 2px
 
-.recv-qrcode
-  width 120px
-
-.connect-tips
-  margin-top 20px
-  color #a7a7a7
-  line-height 1.5
-
-.btn-wait-connect
-  margin-top 20px
-  width 100%
-
-/* step 3 */
-.sending-box
-  margin 8px auto
-
-.sending-summary
+.fileProgress
   display flex
   justify-content space-between
-  color #a7a7a7
+  align-items center
+  padding 8px 0
+  border-bottom 1px solid #f3f4f6
+  font-size 13px
+  &:last-child
+    border-bottom none
 
-.peer-connected
-  color #61F36B
+.fileProgressName
+  color #374151
+  font-weight 500
+  flex 1
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+  margin-right 8px
 
-.peer-not-connected
-  color #EA7A7A
+.fileProgressPct
+  color #2563eb
+  font-weight 600
+  min-width 40px
+  text-align right
 
+.fileProgressDone
+  color #16a34a
 
-.btn-sending
-  margin-top 20px
-  width 100%
-
-@media (max-width: 1200px)
-  .base
-    width 80%
-    max-width 650px
-    // min-width 380px
+.btnBack
+  display flex
+  align-items center
+  justify-content center
+  margin 20px auto 0
+  padding 0
+  font-size 20px
+  background #f3f4f6
+  border 1px solid #d1d5db
+  border-radius 50%
+  cursor pointer
+  color #374151
+  width 48px
+  height 48px
+  line-height 1
+  transition all 0.2s
+  outline none
+  &:hover
+    background #e5e7eb
+    transform scale(1.05)

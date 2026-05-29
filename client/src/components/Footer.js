@@ -1,22 +1,31 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styles from './Footer.cm.styl';
 
-function Footer() {
+function Footer({ onCoffeeClick }) {
   return (
     <div className={styles.base}>
-      <span>
-        © 2020 小鹿快传 | <a target="_blank" rel="noopener noreferrer" href="http://beian.miit.gov.cn/">鲁ICP备18047579号-3</a> | 友情链接：
-      </span>
-      <a target="_blank" rel="noopener noreferrer" href="https://wonderfulcv.com">橙子简历</a>
-      <a target="_blank" rel="noopener noreferrer" href="https://github.com/fanchangyong/deershare"> | GitHub</a>
-      <a target="_blank" rel="noopener noreferrer" href="mailto:support@deershare.com"> | 联系我们 </a>
+      <button className={styles.btnCoffee} onClick={onCoffeeClick}>
+        ☕ 请我喝咖啡
+      </button>
+      <div className={styles.footerLinks}>
+        <a href="https://github.com/xiaoyaozz/deershare" target="_blank" rel="noopener noreferrer" className={styles.footerLink}>
+          GitHub
+        </a>
+        <span className={styles.footerDivider}></span>
+        <a href="mailto:support@deershare.com" className={styles.footerLink}>
+          联系我们
+        </a>
+      </div>
+      <div className={styles.copyright}>
+        © {new Date().getFullYear()} 极速传输
+      </div>
     </div>
   );
 }
 
-Footer.defaultProps = {};
-
 Footer.propTypes = {
+  onCoffeeClick: PropTypes.func,
 };
 
 export default Footer;

@@ -1,64 +1,147 @@
 .container
-  background linear-gradient(#BDDEE1, #F0FCFD)
-  min-height 100%
-  padding-bottom 50px // 对应于Footer的高度
-
-.content
-  width 1110px
-  margin auto
-  margin-top 60px
+  min-height 100vh
   display flex
-  align-items flex-start
+  flex-direction column
+  align-items center
+  background #ffffff
 
-.cards-area
-  margin-left 80px
-
-.card-row
+.main
+  flex 1
   display flex
-  justify-content space-between
-  width 650px
-  margin-bottom 50px
+  flex-direction column
+  justify-content center
+  align-items center
+  width 100%
+  padding 0 24px
 
-.card-wrapper
-  width 300px
-  height 185px
+.landing
+  width 100%
+  max-width 500px
+  text-align center
 
-.icon-simple
-  margin-right 5px
+.header
+  width 100%
+  padding 20px 24px 0
+  text-align left
+
+@media (min-width: 768px)
+  .header
+    text-align center
+    padding 30px 24px 0
+
+.title
+  font-size 28px
+  color #1a1a1a
+  font-weight 700
+  letter-spacing -0.5px
+
+@media (min-width: 768px)
+  .title
+    font-size 32px
+
+.subtitle
+  font-size 14px
+  color #8e8e93
+  margin-top 4px
+
+.heroText
+  width 100%
+  padding 16px 24px 0
+  text-align left
+
+@media (min-width: 768px)
+  .heroText
+    text-align center
+    padding 20px 24px 0
+    max-width 600px
+    margin 0 auto
+
+.tagline
+  font-size 13px
+  font-weight 600
+  letter-spacing 1px
+  color #2563eb
+  text-transform uppercase
+  margin-bottom 6px
+
+.heroSubtitle
   font-size 18px
-  color #f9acef
+  font-weight 600
+  color #1a1a1a
+  margin-bottom 6px
 
-.icon-secure
-  margin-right 5px
-  font-size 18px
-  color #F05F5F
+@media (min-width: 768px)
+  .heroSubtitle
+    font-size 22px
 
-.icon-speed
-  margin-right 5px
-  font-size 18px
-  color #5ABAF4
+.heroDesc
+  font-size 13px
+  color #8e8e93
+  line-height 1.5
 
-.icon-check
-  margin-right 5px
-  font-size 18px
-  color #6ADF4A
+@media (min-width: 768px)
+  .heroDesc
+    font-size 14px
 
-@media (max-width: 1200px)
-  .content
-    display block
-    width auto
-  .cards-area
-    margin auto
-  .card-row
-    margin auto
-    margin-top 50px
+.btnGroup
+  display flex
+  flex-direction column
+  gap 16px
+  width 100%
+  max-width 400px
+  margin 24px auto 0
 
-@media (max-width: 768px)
-  .card-row
-    display block
-    width auto
-    margin-top 0px
+@media (min-width: 768px)
+  .btnGroup
+    flex-direction row
+    gap 20px
+    max-width 500px
 
-  .card-wrapper
-    margin auto
-    margin-top 50px
+.btn
+  padding 20px 0
+  font-size 20px
+  border none
+  border-radius 16px
+  cursor pointer
+  font-weight 600
+  text-align center
+  display flex
+  align-items center
+  justify-content center
+  gap 10px
+  box-shadow 0 2px 8px rgba(0,0,0,0.04)
+  text-decoration none
+  transition all 0.2s ease
+
+.btnIcon
+  font-size 22px
+
+.btnSend
+  background #2563eb
+  color white
+  &:hover
+    background #1d4ed8
+  &:active
+    transform scale(0.98)
+
+@media (min-width: 768px)
+  .btnSend
+    &:hover
+      background #1d4ed8
+      transform translateY(-2px)
+      box-shadow 0 6px 16px rgba(37,99,235,0.2)
+
+.btnReceive
+  background #16a34a
+  color white
+  &:hover
+    background #15803d
+  &:active
+    transform scale(0.98)
+
+@media (min-width: 768px)
+  .btnReceive
+    &:hover
+      background #15803d
+      transform translateY(-2px)
+      box-shadow 0 6px 16px rgba(22,163,74,0.2)
