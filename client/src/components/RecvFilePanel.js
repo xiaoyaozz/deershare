@@ -69,9 +69,7 @@ class RecvFilePanel extends Component {
       files: [],
       targetId: '',
     });
-    window.history.pushState({}, '', '/');
-    const popEvent = new Event('popstate');
-    window.dispatchEvent(popEvent);
+    this.props.history.push('/');
   }
 
   onChangeRecvCode(value) {

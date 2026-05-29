@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import prettyBytes from 'pretty-bytes';
 import uuidv4 from 'uuid/v4';
+import { withRouter } from 'react-router-dom';
 import Dropzone from 'react-dropzone';
 
 import Toast from './common/Toast';
@@ -60,9 +61,7 @@ class SendFilePanel extends Component {
       peerState: '',
       waitingPrepareSend: false,
     });
-    window.history.pushState({}, '', '/');
-    const popEvent = new Event('popstate');
-    window.dispatchEvent(popEvent);
+    this.props.history.push('/');
   }
 
   onClickSelectDone() {
@@ -243,7 +242,7 @@ class SendFilePanel extends Component {
 
     return (
       <>
-        <Dropzone onDrop={this.onChangeFile} noClick>
+        <Dropzone onDrop={this.onChangeFile}>
           {({ getRootProps, getInputProps, isDragActive, open }) => (
             <>
               <div
@@ -398,4 +397,4 @@ SendFilePanel.propTypes = {
   setState: PropTypes.func,
 };
 
-export default SendFilePanel;
+export default withRouter(SendFilePanel);
